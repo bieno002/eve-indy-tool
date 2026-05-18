@@ -14,6 +14,7 @@
     "dev:electron": "wait-on http://localhost:5173 && npm run build:electron && VITE_DEV_SERVER_URL=http://localhost:5173 electron .",
     "dev": "concurrently -k -n vite,electron \"npm:dev:vite\" \"npm:dev:electron\"",
     "setup-sde": "tsx scripts/downloadSde.ts",
+    "rebuild": "electron-rebuild",
     "build:electron": "tsc -p tsconfig.electron.json",
     "build:renderer": "vite build",
     "build": "npm run clean && npm run build:electron && npm run build:renderer",
@@ -22,6 +23,7 @@
     "clean": "rimraf dist"
   },
   "dependencies": {
+    "better-sqlite3": "^12.10.0",
     "buffer-crc32": "^0.2.13",
     "debug": "^4.4.3",
     "end-of-stream": "^1.4.5",
@@ -46,7 +48,9 @@
     "yauzl": "^2.10.0"
   },
   "devDependencies": {
+    "@electron/rebuild": "^4.0.4",
     "@tailwindcss/vite": "^4.3.0",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.9.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

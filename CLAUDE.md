@@ -93,6 +93,7 @@ eve-indy-tool/
 - All DB access goes through the `electron/db/` layer, never directly from IPC handlers
 - Material paste format (EVE copy from inventory): tab-separated `Name\tQuantity` lines, quantities may include commas (e.g. `Tritanium\t1,234,567`)
 - IDs are `number` in TypeScript (EVE type IDs fit in a 32-bit int)
+- **No comments by default.** Only add a comment when the *why* is non-obvious: a hidden constraint, a non-obvious invariant, or a workaround for a specific bug. Never comment on what the code does — well-named identifiers already do that.
 
 ## Scripts
 
