@@ -1,5 +1,6 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
+import { registerBlueprintHandlers } from './ipc/blueprints.js';
 
 function createWindow(): void {
   const win = new BrowserWindow({
@@ -21,6 +22,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  registerBlueprintHandlers(ipcMain);
   createWindow();
 
   app.on('activate', () => {
