@@ -1,4 +1,36 @@
 {
+  "name": "eve-indy-tool",
+  "version": "1.0.0",
+  "description": "Tool to see what things can be built with current material stock in Eve Online.",
+  "license": "ISC",
+  "author": "Jerrad Bieno",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "buffer-crc32": "^0.2.13",
+    "debug": "^4.4.3",
+    "end-of-stream": "^1.4.5",
+    "env-paths": "^3.0.0",
+    "extract-zip": "^2.0.1",
+    "fd-slicer": "^1.1.0",
+    "get-stream": "^5.2.0",
+    "graceful-fs": "^4.2.11",
+    "ms": "^2.1.3",
+    "once": "^1.4.0",
+    "pend": "^1.2.0",
+    "progress": "^2.0.3",
+    "pump": "^3.0.4",
+    "semver": "^7.8.0",
+    "sumchecker": "^3.0.1",
+    "undici": "^7.25.0",
+    "undici-types": "^7.16.0",
+    "wrappy": "^1.0.2",
+    "yauzl": "^2.10.0"
+  },
   "devDependencies": {
     "electron": "^42.1.0"
   }
