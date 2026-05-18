@@ -57,19 +57,6 @@ export function listManufacturableBlueprints(
     .all() as ManufacturableBlueprint[];
 }
 
-export function getBlueprintMaterials(
-  db: Database.Database,
-  blueprintTypeID: number,
-): BlueprintMaterial[] {
-  return db
-    .prepare(
-      `SELECT iam.materialTypeID, it.typeName AS materialName, iam.quantity AS baseQuantity
-       FROM   industryActivityMaterials iam
-       JOIN   invTypes it ON it.typeID = iam.materialTypeID
-       WHERE  iam.typeID = ? AND iam.activityID = 1`,
-    )
-    .all(blueprintTypeID) as BlueprintMaterial[];
-}
 
 export type MaterialRow = {
   blueprintTypeID: number;

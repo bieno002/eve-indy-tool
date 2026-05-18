@@ -4,14 +4,14 @@ import path from 'node:path';
 
 let instance: Database.Database | null = null;
 
+export function getSdePath(): string {
+  return path.join(process.cwd(), 'data', 'sde.sqlite');
+}
+
 function resolveSdePath(): string {
-  // Phase 13 will add Electron userData path for production installs.
-  // For now (dev + tests) resolve relative to the project root.
-  const devPath = path.join(process.cwd(), 'data', 'sde.sqlite');
-  if (existsSync(devPath)) return devPath;
-  throw new Error(
-    `SDE not found at ${devPath}. Run "npm run setup-sde" to download it.`,
-  );
+  const p = getSdePath();
+  if (existsSync(p)) return p;
+  throw new Error(`SDE not found at ${p}. Run "npm run setup-sde" to download it.`);
 }
 
 export function getDb(): Database.Database {
