@@ -3,7 +3,8 @@
   "compilerOptions": {
     "module": "node16",
     "moduleResolution": "node16",
-    "outDir": "dist/electron",
+    "rootDir": ".",
+    "outDir": "dist",
     "composite": true
   },
   "include": ["electron/**/*", "scripts/**/*"]
