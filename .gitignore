@@ -1,3 +1,10 @@
+# Build output
+dist/
+
+# Local EVE static data (downloaded via npm run setup-sde)
+data/*
+!data/.gitkeep
+
 # Logs
 logs
 *.log
