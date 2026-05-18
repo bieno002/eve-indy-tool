@@ -76,7 +76,7 @@ eve-indy-tool/
 4. IPC handlers are thin: they delegate to the pure-function layer immediately
 5. Use `npm run dev` to launch Electron with Vite HMR
 6. Never include `Co-Authored-By: Claude` or any AI attribution in git commit messages
-7. After completing any task or feature that added new code, run the `/review` and `/simplify` skills on the changes before committing
+7. After completing any task or feature that added new code, run the `/review` skill on the changes before committing
 
 ## Testing
 
