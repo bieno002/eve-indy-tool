@@ -4,8 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "outDir": "dist/renderer",
-    "composite": true
+    "noEmit": true
   },
   "include": ["src/**/*"]
 }

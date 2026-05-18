@@ -1,1 +1,1 @@
-// Renderer-process ambient declarations (extended in later phases)
+/// <reference types="vite/client" />

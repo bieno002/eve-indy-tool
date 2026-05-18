@@ -12,8 +12,12 @@ function createWindow(): void {
     },
   });
 
-  // Phase 4: load Vite dev server or built renderer
-  void win.loadURL('about:blank');
+  const devServerUrl = process.env['VITE_DEV_SERVER_URL'];
+  if (devServerUrl) {
+    void win.loadURL(devServerUrl);
+  } else {
+    void win.loadFile(path.join(__dirname, '../renderer/index.html'));
+  }
 }
 
 app.whenReady().then(() => {
