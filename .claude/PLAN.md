@@ -2,9 +2,8 @@
 
 ## Status
 
-Phases 1–11 are committed and passing. The app runs (`npm run dev`) and shows a
-functional paste-and-compute UI, but the IPC handlers still return mocks. Phase 12
-wires them to the real DB and calculator.
+Phases 1–12 are committed and passing. The app runs (`npm run dev`) with a functional
+paste-and-compute UI wired to the real SDE DB and calculator. 84 unit tests pass.
 
 ## Completed
 
@@ -21,77 +20,9 @@ wires them to the real DB and calculator.
 | 9 | Vitest config — unit (jsdom) + integration (node) projects |
 | 10 | IPC contract, preload bridge (`electron/ipc/contract.ts`, `electron/preload.ts`) |
 | 11 | Renderer UI: `MaterialPasteInput`, `BuildableTable`, `ShortfallList`, `useBuildables` hook |
+| 12 | Wire IPC to real DB + calculator; shared types in `shared/`; blueprint cache |
 
-Current test count: 79 unit tests, 13 integration tests (skip gracefully when SDE absent).
-
----
-
-## Phase 12 — Wire IPC to Real DB + Calculator
-
-**Goal:** Replace the two mock handlers in `electron/ipc/blueprints.ts` with real logic.
-
-### `sde:status` handler
-
-Replace the mock with a real check:
-
-```typescript
-import { existsSync } from 'node:fs';
-import path from 'node:path';
-
-ipcMainInstance.handle(IPC_CHANNELS.SDE_STATUS, (): SdeStatusResponse => {
-  const sdePath = path.join(process.cwd(), 'data', 'sde.sqlite');
-  return existsSync(sdePath)
-    ? { present: true, path: sdePath }
-    : { present: false, path: null };
-});
-```
-
-### `blueprints:computeBuildables` handler
-
-The pipeline (all pieces exist — just need to be connected):
-
-```
-rawPaste
-  → parseMaterials(rawPaste)           // src/lib/materialParser.ts
-  → findManyTypeIdsByName(db, names)   // electron/db/sde.ts  — name → typeID map
-  → build Inventory Map<typeID, qty>
-  → listManufacturableBlueprints(db)   // all blueprints from SDE
-  → getAllManufacturingMaterials(db)    // all material rows (single batch query)
-  → computeBuildables(inventory, bps)  // src/lib/manufactureCalculator.ts
-  → return { items, parseErrors }
-```
-
-Key details:
-- `parseMaterials` returns `{ items: ParsedMaterial[], errors: ParseError[] }`. The `errors`
-  field maps directly to `parseErrors` in the response (same shape as `ParseErrorData`).
-- `ParsedMaterial.name` is the raw string from the paste. Resolve to typeID via
-  `findManyTypeIdsByName`. Materials whose name isn't found in the SDE should be
-  silently dropped from inventory (they won't match any blueprint material anyway).
-- `getAllManufacturingMaterials` returns all material rows for activityID=1. Group by
-  `blueprintTypeID` to build `BlueprintInput[]` for the calculator.
-- Only pass blueprints whose `blueprintTypeID` is in the materials result (i.e., has
-  at least one material row) — blueprints with no materials are uninteresting.
-- `computeBuildables` filters to `possibleRuns > 0` by default (correct behaviour).
-- The return types are structurally compatible: `BuildableResult` ≈ `BuildableResultData`,
-  `ParseError` ≈ `ParseErrorData`. TypeScript structural typing handles this.
-
-### Type-duplication tech debt (resolve in this phase)
-
-`src/types/models.ts` and `electron/ipc/contract.ts` define the same types independently
-because the renderer and electron tsconfigs have separate roots. Resolve by creating
-`shared/types.ts` covered by **both** tsconfigs, then deleting `src/types/models.ts`
-and having `electron/ipc/contract.ts` re-export from it.
-
-Add `shared/` to both tsconfigs:
-- `tsconfig.electron.json`: add `"shared/**/*"` to `include`
-- `tsconfig.renderer.json`: add `"shared/**/*"` to `include`
-
-### Tests for Phase 12
-
-- Unit test the new handler logic in `electron/ipc/blueprints.test.ts` using a fake DB
-  (pass a mock DB object or use `vi.mock` on the sde module). Test the full pipeline:
-  parse → lookup → compute.
-- Integration test via `tests/integration/` is already covered by `sde.test.ts`.
+Current test count: 84 unit tests, 13 integration tests (skip gracefully when SDE absent).
 
 ---
 

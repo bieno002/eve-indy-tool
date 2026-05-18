@@ -1,24 +1,20 @@
+import type { ParseErrorData } from '../types.js';
+
 export type ParsedMaterial = {
   name: string;
   quantity: number;
 };
 
-export type ParseError = {
-  lineNumber: number;
-  line: string;
-  reason: string;
-};
-
 export type ParseResult = {
   items: ParsedMaterial[];
-  errors: ParseError[];
+  errors: ParseErrorData[];
 };
 
 export function parseMaterials(input: string): ParseResult {
   const lines = input.split('\n');
   const items: ParsedMaterial[] = [];
-  const errors: ParseError[] = [];
-  const seen = new Map<string, number>(); // lowercase name → index in items
+  const errors: ParseErrorData[] = [];
+  const seen = new Map<string, number>();
 
   for (let i = 0; i < lines.length; i++) {
     const lineNumber = i + 1;

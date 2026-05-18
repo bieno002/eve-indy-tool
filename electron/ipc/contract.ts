@@ -1,3 +1,12 @@
+export type {
+  ParseErrorData,
+  PerRunRequirementData,
+  ShortfallData,
+  BuildableResultData,
+} from '../../shared/types.js';
+
+import type { BuildableResultData, ParseErrorData } from '../../shared/types.js';
+
 export const IPC_CHANNELS = {
   SDE_STATUS: 'sde:status',
   BLUEPRINTS_COMPUTE: 'blueprints:computeBuildables',
@@ -10,36 +19,6 @@ export type IpcMainLike = {
 export type SdeStatusResponse = {
   present: boolean;
   path: string | null;
-};
-
-export type ParseErrorData = {
-  lineNumber: number;
-  line: string;
-  reason: string;
-};
-
-export type PerRunRequirementData = {
-  materialTypeID: number;
-  materialName: string;
-  requiredPerRun: number;
-  have: number;
-};
-
-export type ShortfallData = {
-  materialTypeID: number;
-  materialName: string;
-  needForOneMore: number;
-};
-
-export type BuildableResultData = {
-  blueprintTypeID: number;
-  productTypeID: number;
-  productName: string;
-  possibleRuns: number;
-  perRunRequirements: PerRunRequirementData[];
-  bottleneckMaterialTypeID: number | null;
-  bottleneckMaterialName: string | null;
-  shortfalls: ShortfallData[];
 };
 
 export type ComputeBuildablesRequest = {

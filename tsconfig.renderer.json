@@ -7,5 +7,5 @@
     "noEmit": true,
     "noUncheckedSideEffectImports": false
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "shared/**/*"]
 }
