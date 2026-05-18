@@ -31,6 +31,7 @@ export type BuildableResult = {
   possibleRuns: number;
   perRunRequirements: PerRunRequirement[];
   bottleneckMaterialTypeID: number | null;
+  bottleneckMaterialName: string | null;
   shortfalls: Shortfall[];
 };
 
@@ -54,6 +55,7 @@ export function computeBuildables(
         possibleRuns: 0,
         perRunRequirements: [],
         bottleneckMaterialTypeID: null,
+        bottleneckMaterialName: null,
         shortfalls: [],
       };
     }
@@ -70,12 +72,14 @@ export function computeBuildables(
     );
 
     let bottleneckMaterialTypeID: number | null = null;
+    let bottleneckMaterialName: string | null = null;
     let minRatio = Infinity;
     for (const r of perRunRequirements) {
       const ratio = r.have / r.requiredPerRun;
       if (ratio < minRatio) {
         minRatio = ratio;
         bottleneckMaterialTypeID = r.materialTypeID;
+        bottleneckMaterialName = r.materialName;
       }
     }
 
@@ -94,6 +98,7 @@ export function computeBuildables(
       possibleRuns,
       perRunRequirements,
       bottleneckMaterialTypeID,
+      bottleneckMaterialName,
       shortfalls,
     };
   });

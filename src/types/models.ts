@@ -1,17 +1,3 @@
-export const IPC_CHANNELS = {
-  SDE_STATUS: 'sde:status',
-  BLUEPRINTS_COMPUTE: 'blueprints:computeBuildables',
-} as const;
-
-export type IpcMainLike = {
-  handle(channel: string, listener: (...args: any[]) => any): void;
-};
-
-export type SdeStatusResponse = {
-  present: boolean;
-  path: string | null;
-};
-
 export type ParseErrorData = {
   lineNumber: number;
   line: string;
@@ -31,7 +17,7 @@ export type ShortfallData = {
   needForOneMore: number;
 };
 
-export type BuildableResultData = {
+export type BuildableItem = {
   blueprintTypeID: number;
   productTypeID: number;
   productName: string;
@@ -40,13 +26,4 @@ export type BuildableResultData = {
   bottleneckMaterialTypeID: number | null;
   bottleneckMaterialName: string | null;
   shortfalls: ShortfallData[];
-};
-
-export type ComputeBuildablesRequest = {
-  rawPaste: string;
-};
-
-export type ComputeBuildablesResponse = {
-  items: BuildableResultData[];
-  parseErrors: ParseErrorData[];
 };

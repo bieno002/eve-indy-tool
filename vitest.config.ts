@@ -7,7 +7,8 @@ export default defineConfig({
         test: {
           name: 'unit',
           include: ['src/**/*.test.{ts,tsx}', 'electron/**/*.test.ts', 'scripts/**/*.test.ts'],
-          environment: 'node',
+          environment: 'jsdom',
+          setupFiles: ['src/test-setup.ts'],
         },
       },
       {
