@@ -15,6 +15,7 @@ export type DownloadDeps = {
   renameFn?: typeof fsRename;
   unlinkFn?: typeof fsUnlink;
   pipelineFn?: typeof streamPipeline;
+  createWriteStreamFn?: typeof createWriteStream;
 };
 
 export async function downloadSde(
@@ -28,6 +29,7 @@ export async function downloadSde(
     renameFn = fsRename,
     unlinkFn = fsUnlink,
     pipelineFn = streamPipeline,
+    createWriteStreamFn = createWriteStream,
   } = deps;
 
   const sdePath = path.join(dataDir, 'sde.sqlite');
@@ -56,7 +58,7 @@ export async function downloadSde(
   const nodeStream = Readable.fromWeb(response.body as Parameters<typeof Readable.fromWeb>[0]);
 
   try {
-    await pipelineFn(nodeStream, progressTransform, unbzip2(), createWriteStream(tmpPath));
+    await pipelineFn(nodeStream, progressTransform, unbzip2(), createWriteStreamFn(tmpPath));
     await renameFn(tmpPath, sdePath);
     onProgress({ percent: 100, done: true });
   } catch (err) {

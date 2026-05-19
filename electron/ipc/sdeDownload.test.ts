@@ -14,6 +14,7 @@ function makeDeps(overrides: Partial<DownloadDeps> = {}): Required<DownloadDeps>
     renameFn: vi.fn().mockResolvedValue(undefined),
     unlinkFn: vi.fn().mockResolvedValue(undefined),
     pipelineFn: vi.fn().mockResolvedValue(undefined),
+    createWriteStreamFn: vi.fn(),
     ...overrides,
   };
 }
