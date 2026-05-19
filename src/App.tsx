@@ -9,9 +9,14 @@ import type { BuildableItem } from './types/models.js';
 
 export default function App() {
   const { present, checking, recheck } = useSdeStatus();
-  const [rawPaste, setRawPaste] = useState('');
+  const [rawPaste, setRawPaste] = useState(() => localStorage.getItem('rawPaste') ?? '');
   const [selected, setSelected] = useState<BuildableItem | null>(null);
   const { items, parseErrors, isLoading, error, compute } = useBuildables();
+
+  const handlePasteChange = (value: string) => {
+    setRawPaste(value);
+    localStorage.setItem('rawPaste', value);
+  };
 
   if (checking) {
     return (
@@ -39,7 +44,7 @@ export default function App() {
 
       <main className="max-w-5xl mx-auto flex flex-col gap-6">
         <section>
-          <MaterialPasteInput value={rawPaste} onChange={setRawPaste} errors={parseErrors} />
+          <MaterialPasteInput value={rawPaste} onChange={handlePasteChange} errors={parseErrors} />
           <button
             className="mt-3 px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-medium rounded disabled:opacity-50 transition-colors"
             onClick={handleCompute}
@@ -50,13 +55,14 @@ export default function App() {
           {error && <p className="mt-2 text-red-400 text-sm">{error}</p>}
         </section>
 
-        {items.length > 0 && (
+        {(isLoading || items.length > 0) && (
           <section className="grid grid-cols-3 gap-6">
             <div className="col-span-2">
               <BuildableTable
                 items={items}
                 selectedId={selected?.blueprintTypeID ?? null}
                 onSelect={setSelected}
+                isLoading={isLoading}
               />
             </div>
             <div>

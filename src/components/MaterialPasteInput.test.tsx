@@ -11,6 +11,11 @@ describe('MaterialPasteInput', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
   });
 
+  it('has accessible label on textarea', () => {
+    render(<MaterialPasteInput value="" onChange={vi.fn()} errors={noErrors} />);
+    expect(screen.getByLabelText('Inventory paste area')).toBeInTheDocument();
+  });
+
   it('calls onChange with new value', () => {
     const onChange = vi.fn();
     render(<MaterialPasteInput value="" onChange={onChange} errors={noErrors} />);

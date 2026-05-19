@@ -10,6 +10,7 @@ export function MaterialPasteInput({ value, onChange, errors }: Props) {
   return (
     <div className="flex flex-col gap-2">
       <textarea
+        aria-label="Inventory paste area"
         className="w-full h-48 bg-slate-800 text-slate-100 border border-slate-600 rounded p-3 font-mono text-sm resize-none focus:outline-none focus:border-cyan-500"
         placeholder={"Paste your inventory here (Name\tQuantity per line)"}
         value={value}
