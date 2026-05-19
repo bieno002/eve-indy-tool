@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Typecheck + Unit tests
+    name: Lint + Typecheck + Unit tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,6 +17,7 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run typecheck
       - run: npm test
 
