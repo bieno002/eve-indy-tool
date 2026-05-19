@@ -28,14 +28,19 @@ Current test count: 116 unit tests, 13 integration tests (skip gracefully when S
 
 ---
 
-## Phase 15 — Production Packaging + CI
+## Phase 15 — Production Packaging + CI (complete)
 
-- `electron-builder` config in `package.json` (`build` key): target macOS `.dmg`,
-  Windows `.nsis`, Linux `.AppImage`
-- The built app must bundle `data/sde.sqlite` or trigger the Phase 13 download on
-  first launch (prefer download — SDE is ~100 MB, bad to ship in installer)
-- `electron/db/client.ts` Phase 13 note: `resolveSdePath()` must check
-  `app.getPath('userData')` for production installs in addition to `process.cwd()/data`
-- ESLint + Prettier setup (defer from Phase 11 as noted)
-- GitHub Actions CI: `npm test` on push, typecheck gate, optional integration test
-  with cached SDE
+- `electron-builder` config in `package.json` (`build` key): macOS `.dmg` (x64+arm64),
+  Windows `.nsis` (x64), Linux `.AppImage` (x64); output to `release/`
+- `getSdePath()` reads `EVE_SDE_DIR` env var (set to `app.getPath('userData')` only
+  when `app.isPackaged`); falls back to `process.cwd()` in dev/test
+- `asarUnpack: ["**/*.node"]` keeps `better-sqlite3` outside the asar archive
+- ESLint 9 flat config (`eslint.config.mjs`) + Prettier (`.prettierrc`);
+  `npm run lint` / `npm run format` / `npm run format:check`
+- GitHub Actions CI (`.github/workflows/ci.yml`): typecheck + unit tests on all
+  pushes; integration tests with weekly-cached SDE
+
+**Known limitation:** `react` and `react-dom` are in `dependencies` (pre-existing),
+so electron-builder will bundle them into the package even though Vite already
+bundles them into the renderer. Moving them to `devDependencies` would shrink the
+installer but is deferred.

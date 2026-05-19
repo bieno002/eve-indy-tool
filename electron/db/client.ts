@@ -5,7 +5,8 @@ import path from 'node:path';
 let instance: Database.Database | null = null;
 
 export function getSdePath(): string {
-  return path.join(process.cwd(), 'data', 'sde.sqlite');
+  const base = process.env['EVE_SDE_DIR'] ?? process.cwd();
+  return path.join(base, 'data', 'sde.sqlite');
 }
 
 function resolveSdePath(): string {

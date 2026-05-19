@@ -16,6 +16,7 @@ export const IPC_CHANNELS = {
 } as const;
 
 export type IpcMainLike = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handle(channel: string, listener: (...args: any[]) => any): void;
 };
 

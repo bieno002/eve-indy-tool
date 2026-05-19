@@ -23,6 +23,9 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  if (app.isPackaged) {
+    process.env['EVE_SDE_DIR'] = app.getPath('userData');
+  }
   registerBlueprintHandlers(ipcMain);
   createWindow();
 

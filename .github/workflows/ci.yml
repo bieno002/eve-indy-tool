@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Typecheck + Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  integration:
+    name: Integration tests (SDE)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Get cache week
+        id: date
+        run: echo "week=$(date +%Y-W%V)" >> $GITHUB_OUTPUT
+      - name: Cache SDE
+        uses: actions/cache@v4
+        with:
+          path: data/sde.sqlite
+          key: sde-${{ steps.date.outputs.week }}
+          restore-keys: sde-
+      - name: Download SDE if not cached
+        run: |
+          if [ ! -f data/sde.sqlite ]; then npm run setup-sde; fi
+      - run: npm run test:integration
