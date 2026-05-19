@@ -1,4 +1,5 @@
 import { existsSync } from 'node:fs';
+import path from 'node:path';
 import type Database from 'better-sqlite3';
 import {
   IPC_CHANNELS,
@@ -6,8 +7,10 @@ import {
   type SdeStatusResponse,
   type ComputeBuildablesRequest,
   type ComputeBuildablesResponse,
+  type SdeProgressData,
 } from './contract.js';
 import { getDb, getSdePath } from '../db/client.js';
+import { downloadSde } from './sdeDownload.js';
 import {
   findManyTypeIdsByName,
   listManufacturableBlueprints,
@@ -82,6 +85,20 @@ export function registerBlueprintHandlers(ipcMainInstance: IpcMainLike): void {
     IPC_CHANNELS.SDE_STATUS,
     (): SdeStatusResponse => getSdeStatus(getSdePath()),
   );
+
+  ipcMainInstance.handle(IPC_CHANNELS.SDE_DOWNLOAD, (event) => {
+    const sender = (event as { sender: { send(ch: string, d: SdeProgressData): void } }).sender;
+    const dataDir = path.dirname(getSdePath());
+    void downloadSde(dataDir, (progress) => {
+      sender.send(IPC_CHANNELS.SDE_PROGRESS, progress);
+    }).catch((err: unknown) => {
+      sender.send(IPC_CHANNELS.SDE_PROGRESS, {
+        percent: 0,
+        done: true,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    });
+  });
 
   ipcMainInstance.handle(
     IPC_CHANNELS.BLUEPRINTS_COMPUTE,

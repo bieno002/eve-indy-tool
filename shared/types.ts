@@ -27,3 +27,9 @@ export type BuildableResultData = {
   bottleneckMaterialName: string | null;
   shortfalls: ShortfallData[];
 };
+
+export type SdeProgressData = {
+  percent: number;
+  done: boolean;
+  error?: string;
+};

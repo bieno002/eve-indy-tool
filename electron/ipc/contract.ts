@@ -3,12 +3,15 @@ export type {
   PerRunRequirementData,
   ShortfallData,
   BuildableResultData,
+  SdeProgressData,
 } from '../../shared/types.js';
 
 import type { BuildableResultData, ParseErrorData } from '../../shared/types.js';
 
 export const IPC_CHANNELS = {
   SDE_STATUS: 'sde:status',
+  SDE_DOWNLOAD: 'sde:download',
+  SDE_PROGRESS: 'sde:progress',
   BLUEPRINTS_COMPUTE: 'blueprints:computeBuildables',
 } as const;
 

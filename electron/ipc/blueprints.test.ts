@@ -34,16 +34,22 @@ describe('registerBlueprintHandlers', () => {
     expect(fake.handle).toHaveBeenCalledWith(IPC_CHANNELS.SDE_STATUS, expect.any(Function));
   });
 
+  it('registers the sde:download channel', () => {
+    const fake = makeFakeIpcMain();
+    registerBlueprintHandlers(fake);
+    expect(fake.handle).toHaveBeenCalledWith(IPC_CHANNELS.SDE_DOWNLOAD, expect.any(Function));
+  });
+
   it('registers the blueprints:computeBuildables channel', () => {
     const fake = makeFakeIpcMain();
     registerBlueprintHandlers(fake);
     expect(fake.handle).toHaveBeenCalledWith(IPC_CHANNELS.BLUEPRINTS_COMPUTE, expect.any(Function));
   });
 
-  it('registers exactly two channels', () => {
+  it('registers exactly three channels', () => {
     const fake = makeFakeIpcMain();
     registerBlueprintHandlers(fake);
-    expect(fake.handle).toHaveBeenCalledTimes(2);
+    expect(fake.handle).toHaveBeenCalledTimes(3);
   });
 
   describe('sde:status handler', () => {

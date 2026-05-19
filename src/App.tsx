@@ -2,13 +2,28 @@ import { useState } from 'react';
 import { MaterialPasteInput } from './components/MaterialPasteInput.js';
 import { BuildableTable } from './components/BuildableTable.js';
 import { ShortfallList } from './components/ShortfallList.js';
+import { SdeSetupScreen } from './components/SdeSetupScreen.js';
 import { useBuildables } from './hooks/useBuildables.js';
+import { useSdeStatus } from './hooks/useSdeStatus.js';
 import type { BuildableItem } from './types/models.js';
 
 export default function App() {
+  const { present, checking, recheck } = useSdeStatus();
   const [rawPaste, setRawPaste] = useState('');
   const [selected, setSelected] = useState<BuildableItem | null>(null);
   const { items, parseErrors, isLoading, error, compute } = useBuildables();
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex items-center justify-center">
+        <p className="text-slate-400">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!present) {
+    return <SdeSetupScreen onComplete={recheck} />;
+  }
 
   const handleCompute = () => {
     setSelected(null);
