@@ -67,14 +67,8 @@ never set, and all IPC calls throw at runtime.
 | `SDE_STATUS` | `sde:status` | renderer → main | Returns `{ present, path }` |
 | `BLUEPRINTS_COMPUTE` | `blueprints:computeBuildables` | renderer → main | Main compute pipeline |
 
-All channels use `ipcMain.handle` / `ipcRenderer.invoke` (request-response).
-Phase 13 will add one-way push channels for download progress.
-
-### Current state of handlers (`electron/ipc/blueprints.ts`)
-
-**Both handlers currently return mocks.** Phase 12 replaces them with real logic.
-`sde:status` returns `{ present: false, path: null }`.
-`blueprints:computeBuildables` returns `{ items: [], parseErrors: [] }`.
+Request-response channels use `ipcMain.handle` / `ipcRenderer.invoke`.
+`SDE_PROGRESS` is a one-way push from main → renderer via `event.sender.send` / `ipcRenderer.on`.
 
 ### `IpcMainLike` type
 
@@ -84,7 +78,7 @@ The `any[]` in its signature is intentional (matches Electron's actual type).
 
 ---
 
-## Data flow (Phase 12 target)
+## Data flow
 
 ```
 Renderer paste text
@@ -156,12 +150,14 @@ boundary without explicit casts.
 
 ---
 
-## What the UI does right now (post Phase 11)
+## What the UI does right now (post Phase 14)
 
-1. User pastes tab-separated inventory (`Name\tQuantity` per line)
-2. Clicks "Compute" button (disabled when empty or loading)
-3. `useBuildables` hook calls `window.eveIndy.computeBuildables({ rawPaste })` via IPC
-4. **Currently returns empty results** (mock handler — Phase 12 fixes this)
-5. `BuildableTable` shows items sorted by possible runs desc, then name asc
-6. Clicking a row selects it and shows its shortfalls in `ShortfallList`
-7. Parse errors from the paste appear below the textarea
+- On launch: checks SDE presence via `sde:status`. Shows `SdeSetupScreen` with
+  in-app download + progress bar if absent; main UI if present.
+- `rawPaste` is persisted in `localStorage` and restored on app reload.
+- User pastes tab-separated inventory (`Name\tQuantity` per line)
+- Clicks "Compute" (disabled when empty or loading); shows loading skeleton during compute
+- Results appear in `BuildableTable` with clickable column headers for sort (asc/desc)
+  and a filter input to narrow by product name
+- Clicking a row selects it and shows its shortfalls in `ShortfallList`
+- Parse errors from the paste appear below the textarea
