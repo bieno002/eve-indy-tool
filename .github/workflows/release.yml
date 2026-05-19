@@ -1,0 +1,69 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version tag (e.g. 1.2.3)'
+        required: true
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            name: mac-arm64
+            eb_flags: --mac --arm64
+            artifact: 'release/*.dmg'
+          - os: windows-latest
+            name: win-x64
+            eb_flags: --win --x64
+            artifact: 'release/*.exe'
+          - os: ubuntu-latest
+            name: linux-x64
+            eb_flags: --linux --x64
+            artifact: 'release/*.AppImage'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Package (${{ matrix.name }})
+        run: npx electron-builder ${{ matrix.eb_flags }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: '*'
+          merge-multiple: true
+          path: artifacts
+      - name: Create GitHub release
+        run: |
+          gh release create "v${{ github.event.inputs.version }}" \
+            artifacts/* \
+            --repo "${{ github.repository }}" \
+            --title "v${{ github.event.inputs.version }}" \
+            --draft \
+            --generate-notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
