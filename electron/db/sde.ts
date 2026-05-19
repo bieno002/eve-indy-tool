@@ -65,6 +65,20 @@ export type MaterialRow = {
   baseQuantity: number;
 };
 
+export function getBlueprintMaterials(
+  db: Database.Database,
+  blueprintTypeID: number,
+): BlueprintMaterial[] {
+  return db
+    .prepare(
+      `SELECT iam.materialTypeID, it.typeName AS materialName, iam.quantity AS baseQuantity
+       FROM   industryActivityMaterials iam
+       JOIN   invTypes it ON it.typeID = iam.materialTypeID
+       WHERE  iam.activityID = 1 AND iam.typeID = ?`,
+    )
+    .all(blueprintTypeID) as BlueprintMaterial[];
+}
+
 export function getAllManufacturingMaterials(db: Database.Database): MaterialRow[] {
   return db
     .prepare(
