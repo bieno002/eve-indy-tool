@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import {
   findTypeIdByName,
   findManyTypeIdsByName,
@@ -14,10 +14,10 @@ const SDE_PATH = path.join(process.cwd(), 'data', 'sde.sqlite');
 const sdeMissing = !existsSync(SDE_PATH);
 
 describe.skipIf(sdeMissing)('SDE integration (requires data/sde.sqlite)', () => {
-  let db: Database.Database;
+  let db: DatabaseSync;
 
   beforeAll(() => {
-    db = new Database(SDE_PATH, { readonly: true, fileMustExist: true });
+    db = new DatabaseSync(SDE_PATH, { readOnly: true });
   });
 
   afterAll(() => {

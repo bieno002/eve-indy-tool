@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 import {
   IPC_CHANNELS,
   type IpcMainLike,
@@ -33,7 +33,7 @@ export function clearBlueprintCache(): void {
   blueprintCache = null;
 }
 
-function getBlueprintData(db: Database.Database): BpWithMaterials[] {
+function getBlueprintData(db: DatabaseSync): BpWithMaterials[] {
   if (blueprintCache) return blueprintCache;
 
   const materialRows = getAllManufacturingMaterials(db);
@@ -63,7 +63,7 @@ export function getSdeStatus(sdePath: string): SdeStatusResponse {
 }
 
 export function computeBuildablesFromDb(
-  db: Database.Database,
+  db: DatabaseSync,
   rawPaste: string,
 ): ComputeBuildablesResponse {
   const { items: parsedMaterials, errors: parseErrors } = parseMaterials(rawPaste);

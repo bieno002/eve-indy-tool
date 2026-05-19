@@ -1,4 +1,4 @@
-import type Database from 'better-sqlite3';
+import type { DatabaseSync } from 'node:sqlite';
 
 export type ManufacturableBlueprint = {
   blueprintTypeID: number;
@@ -14,7 +14,7 @@ export type BlueprintMaterial = {
 
 // ── Type lookups ──────────────────────────────────────────────────────────────
 
-export function findTypeIdByName(db: Database.Database, name: string): number | null {
+export function findTypeIdByName(db: DatabaseSync, name: string): number | null {
   const row = db
     .prepare('SELECT typeID FROM invTypes WHERE LOWER(typeName) = LOWER(?)')
     .get(name) as { typeID: number } | undefined;
@@ -22,7 +22,7 @@ export function findTypeIdByName(db: Database.Database, name: string): number | 
 }
 
 export function findManyTypeIdsByName(
-  db: Database.Database,
+  db: DatabaseSync,
   names: string[],
 ): Map<string, number> {
   if (names.length === 0) return new Map();
@@ -45,7 +45,7 @@ export function findManyTypeIdsByName(
 // ── Blueprint queries ─────────────────────────────────────────────────────────
 
 export function listManufacturableBlueprints(
-  db: Database.Database,
+  db: DatabaseSync,
 ): ManufacturableBlueprint[] {
   return db
     .prepare(
@@ -66,7 +66,7 @@ export type MaterialRow = {
 };
 
 export function getBlueprintMaterials(
-  db: Database.Database,
+  db: DatabaseSync,
   blueprintTypeID: number,
 ): BlueprintMaterial[] {
   return db
@@ -79,7 +79,7 @@ export function getBlueprintMaterials(
     .all(blueprintTypeID) as BlueprintMaterial[];
 }
 
-export function getAllManufacturingMaterials(db: Database.Database): MaterialRow[] {
+export function getAllManufacturingMaterials(db: DatabaseSync): MaterialRow[] {
   return db
     .prepare(
       `SELECT iam.typeID AS blueprintTypeID, iam.materialTypeID,
