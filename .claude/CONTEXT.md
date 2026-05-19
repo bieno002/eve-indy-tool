@@ -35,6 +35,13 @@ the Electron runtime, run `npm run rebuild` if queries fail with a Node ABI mism
 Integration tests use `describe.skipIf(!existsSync(SDE_PATH))` so `npm test` is
 always green on fresh checkouts.
 
+### Electron sandbox
+
+`main.ts` sets `sandbox: false` in `webPreferences`. Electron 20+ sandboxes preload
+scripts by default, which blocks `require()` for local files like `./ipc/contract.js`.
+Without `sandbox: false` the preload silently fails to load, `window.eveIndy` is
+never set, and all IPC calls throw at runtime.
+
 ---
 
 ## EVE SDE facts
