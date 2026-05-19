@@ -1,8 +1,8 @@
-import Database from 'better-sqlite3';
+import { DatabaseSync } from 'node:sqlite';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 
-let instance: Database.Database | null = null;
+let instance: DatabaseSync | null = null;
 
 export function getSdePath(): string {
   const base = process.env['EVE_SDE_DIR'] ?? process.cwd();
@@ -15,16 +15,14 @@ function resolveSdePath(): string {
   throw new Error(`SDE not found at ${p}. Run "npm run setup-sde" to download it.`);
 }
 
-export function getDb(): Database.Database {
+export function getDb(): DatabaseSync {
   if (!instance) {
-    instance = new Database(resolveSdePath(), { readonly: true, fileMustExist: true });
+    instance = new DatabaseSync(resolveSdePath(), { readOnly: true });
   }
   return instance;
 }
 
 export function closeDb(): void {
-  if (instance?.open) {
-    instance.close();
-  }
+  instance?.close();
   instance = null;
 }
