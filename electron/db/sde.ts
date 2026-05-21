@@ -49,9 +49,10 @@ export function listManufacturableBlueprints(
 ): ManufacturableBlueprint[] {
   return db
     .prepare(
-      `SELECT iap.typeID AS blueprintTypeID, iap.productTypeID, it.typeName AS productName
+      `SELECT iap.typeID AS blueprintTypeID, iap.productTypeID, prod.typeName AS productName
        FROM   industryActivityProducts iap
-       JOIN   invTypes it ON it.typeID = iap.productTypeID
+       JOIN   invTypes prod ON prod.typeID = iap.productTypeID AND prod.published = 1
+       JOIN   invTypes bp   ON bp.typeID   = iap.typeID        AND bp.published   = 1
        WHERE  iap.activityID = 1`,
     )
     .all() as ManufacturableBlueprint[];
