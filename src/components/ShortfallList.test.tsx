@@ -22,7 +22,7 @@ describe('ShortfallList', () => {
 
   it('shows no-shortfall message when shortfalls is empty', () => {
     render(<ShortfallList item={baseItem} />);
-    expect(screen.getByText(/No shortfalls/)).toBeInTheDocument();
+    expect(screen.getByText(/Enough for run/)).toBeInTheDocument();
   });
 
   it('shows product name and next run number in heading', () => {
@@ -54,6 +54,6 @@ describe('ShortfallList', () => {
       shortfalls: [{ materialTypeID: 1, materialName: 'Tritanium', needForOneMore: 1500 }],
     };
     render(<ShortfallList item={item} />);
-    expect(screen.getByText(/need.*more/)).toBeInTheDocument();
+    expect(screen.getByText(/\+1,500/)).toBeInTheDocument();
   });
 });
