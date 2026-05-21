@@ -119,7 +119,19 @@ export function BuildableTable({ items, selectedId, onSelect, isLoading = false 
                     }
                   }}
                 >
-                  <td className="py-2 pr-4">{item.productName}</td>
+                  <td className="py-2 pr-4">
+                    <span className="flex items-center gap-2">
+                      <img
+                        src={`https://images.evetech.net/types/${item.productTypeID}/icon?size=32`}
+                        alt=""
+                        width={32}
+                        height={32}
+                        className="rounded shrink-0"
+                        onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                      />
+                      {item.productName}
+                    </span>
+                  </td>
                   <td className="py-2 pr-4 text-right tabular-nums">{item.possibleRuns}</td>
                   <td className="py-2 text-amber-400">{bottleneck}</td>
                 </tr>
