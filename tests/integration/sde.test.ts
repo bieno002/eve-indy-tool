@@ -69,7 +69,16 @@ describe.skipIf(sdeMissing)('SDE integration (requires data/sde.sqlite)', () => 
         blueprintTypeID: expect.any(Number),
         productTypeID: expect.any(Number),
         productName: expect.any(String),
+        meLevel: expect.any(Number),
       });
+    });
+
+    it('assigns meLevel 10 to T1 blueprints and meLevel 2 to T2 blueprints', () => {
+      const blueprints = listManufacturableBlueprints(db);
+      const rifter = blueprints.find(b => b.productName === 'Rifter');
+      expect(rifter?.meLevel).toBe(10);
+      const t2 = blueprints.find(b => b.productName === 'Hobgoblin II');
+      expect(t2?.meLevel).toBe(2);
     });
 
     it('Tritanium (a raw material) has no blueprint entry', () => {

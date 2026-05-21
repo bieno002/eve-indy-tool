@@ -24,6 +24,7 @@ type BpWithMaterials = {
   blueprintTypeID: number;
   productTypeID: number;
   productName: string;
+  meLevel: number;
   materials: MaterialRow[];
 };
 
@@ -50,6 +51,7 @@ function getBlueprintData(db: DatabaseSync): BpWithMaterials[] {
       blueprintTypeID: bp.blueprintTypeID,
       productTypeID: bp.productTypeID,
       productName: bp.productName,
+      meLevel: bp.meLevel,
       materials: materialsByBp.get(bp.blueprintTypeID)!,
     }));
 

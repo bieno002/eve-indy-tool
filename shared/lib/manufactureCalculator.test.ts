@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  applyMe10,
+  applyMe,
   computeBuildables,
   type BlueprintInput,
   type Inventory,
@@ -16,11 +16,13 @@ function bp(
   id: number,
   name: string,
   materials: Array<[typeID: number, matName: string, baseQty: number]>,
+  meLevel = 10,
 ): BlueprintInput {
   return {
     blueprintTypeID: id,
     productTypeID: id + 1000,
     productName: name,
+    meLevel,
     materials: materials.map(([materialTypeID, materialName, baseQuantity]) => ({
       materialTypeID,
       materialName,
@@ -29,14 +31,23 @@ function bp(
   };
 }
 
-// ── applyMe10 ─────────────────────────────────────────────────────────────────
+// ── applyMe ───────────────────────────────────────────────────────────────────
 
-describe('applyMe10', () => {
-  it('clamps to 1 for zero input', () => expect(applyMe10(0)).toBe(1));
-  it('clamps to 1 for qty 1', () => expect(applyMe10(1)).toBe(1));
-  it('returns 9 for qty 10', () => expect(applyMe10(10)).toBe(9));
-  it('ceils fractional results — qty 11 → 10', () => expect(applyMe10(11)).toBe(10));
-  it('handles large quantities', () => expect(applyMe10(1_000_000)).toBe(900_000));
+describe('applyMe', () => {
+  describe('ME 10 (T1 max research)', () => {
+    it('clamps to 1 for zero input', () => expect(applyMe(0, 10)).toBe(1));
+    it('clamps to 1 for qty 1', () => expect(applyMe(1, 10)).toBe(1));
+    it('returns 9 for qty 10', () => expect(applyMe(10, 10)).toBe(9));
+    it('ceils fractional results — qty 11 → 10', () => expect(applyMe(11, 10)).toBe(10));
+    it('handles large quantities', () => expect(applyMe(1_000_000, 10)).toBe(900_000));
+  });
+
+  describe('ME 2 (T2 default from invention)', () => {
+    it('clamps to 1 for qty 1', () => expect(applyMe(1, 2)).toBe(1));
+    it('returns 98 for qty 100', () => expect(applyMe(100, 2)).toBe(98));
+    it('ceils fractional results — qty 50 → 49', () => expect(applyMe(50, 2)).toBe(49));
+    it('handles large quantities', () => expect(applyMe(1_000_000, 2)).toBe(980_000));
+  });
 });
 
 // ── computeBuildables ─────────────────────────────────────────────────────────
@@ -47,7 +58,7 @@ describe('computeBuildables', () => {
       const inventory = inv([[10, 90]]);
       const blueprint = bp(1, 'Widget', [[10, 'Iron', 100]]);
       const [result] = computeBuildables(inventory, [blueprint], { includeUnbuildable: true });
-      // applyMe10(100) = 90; 90 / 90 = 1 run
+      // applyMe(100, 10) = 90; 90 / 90 = 1 run
       expect(result.possibleRuns).toBe(1);
     });
 
@@ -55,7 +66,7 @@ describe('computeBuildables', () => {
       const inventory = inv([[10, 200]]);
       const blueprint = bp(1, 'Widget', [[10, 'Iron', 100]]);
       const [result] = computeBuildables(inventory, [blueprint], { includeUnbuildable: true });
-      // applyMe10(100) = 90; floor(200/90) = 2
+      // applyMe(100, 10) = 90; floor(200/90) = 2
       expect(result.possibleRuns).toBe(2);
     });
 
@@ -70,8 +81,8 @@ describe('computeBuildables', () => {
   describe('multi-material blueprint', () => {
     it('identifies the bottleneck material', () => {
       const inventory = inv([
-        [10, 900], // Iron:  applyMe10(100)=90 → 10 runs
-        [20, 8],   // Silk:  applyMe10(5)=5   → 1 run  ← bottleneck
+        [10, 900], // Iron:  applyMe(100, 10)=90 → 10 runs
+        [20, 8],   // Silk:  applyMe(5, 10)=5   → 1 run  ← bottleneck
       ]);
       const blueprint = bp(1, 'Widget', [
         [10, 'Iron', 100],
@@ -84,9 +95,9 @@ describe('computeBuildables', () => {
 
     it('returns possibleRuns limited by the scarcest material', () => {
       const inventory = inv([
-        [10, 270], // applyMe10(100)=90 → 3 runs
-        [20, 18],  // applyMe10(10)=9  → 2 runs  ← limits
-        [30, 900], // applyMe10(100)=90 → 10 runs
+        [10, 270], // applyMe(100, 10)=90 → 3 runs
+        [20, 18],  // applyMe(10, 10)=9  → 2 runs  ← limits
+        [30, 900], // applyMe(100, 10)=90 → 10 runs
       ]);
       const blueprint = bp(1, 'Gadget', [
         [10, 'Iron', 100],
@@ -119,14 +130,14 @@ describe('computeBuildables', () => {
       const [result] = computeBuildables(inventory, [blueprint], { includeUnbuildable: true });
       const silkShortfall = result.shortfalls.find(s => s.materialTypeID === 20);
       expect(silkShortfall).toBeDefined();
-      // applyMe10(5) = 5; need 5, have 0 → needForOneMore = 5
+      // applyMe(5, 10) = 5; need 5, have 0 → needForOneMore = 5
       expect(silkShortfall?.needForOneMore).toBe(5);
     });
   });
 
   describe('exact inventory', () => {
     it('shows a shortfall of exactly requiredPerRun when inventory is fully depleted', () => {
-      // applyMe10(100) = 90; 3 runs = 270 used; need 90 more for run 4
+      // applyMe(100, 10) = 90; 3 runs = 270 used; need 90 more for run 4
       const inventory = inv([[10, 270]]);
       const blueprint = bp(1, 'Widget', [[10, 'Iron', 100]]);
       const [result] = computeBuildables(inventory, [blueprint], { includeUnbuildable: true });
@@ -135,7 +146,7 @@ describe('computeBuildables', () => {
     });
 
     it('calculates correct needForOneMore when partially stocked', () => {
-      // applyMe10(100) = 90; have 200 → 2 runs, leftover 20
+      // applyMe(100, 10) = 90; have 200 → 2 runs, leftover 20
       // needForOneMore = 3*90 - 200 = 70
       const inventory = inv([[10, 200]]);
       const blueprint = bp(1, 'Widget', [[10, 'Iron', 100]]);
@@ -145,8 +156,8 @@ describe('computeBuildables', () => {
     });
 
     it('excludes non-bottleneck materials from shortfalls when they cover extra runs', () => {
-      // Iron: applyMe10(100)=90, have=540 → 6 runs
-      // Silk: applyMe10(5)=5,   have=25  → 5 runs (bottleneck)
+      // Iron: applyMe(100, 10)=90, have=540 → 6 runs
+      // Silk: applyMe(5, 10)=5,   have=25  → 5 runs (bottleneck)
       // possibleRuns=5; Iron needForOneMore = 6*90-540 = 0 → not a shortfall
       const inventory = inv([[10, 540], [20, 25]]);
       const blueprint = bp(1, 'Widget', [[10, 'Iron', 100], [20, 'Silk', 5]]);
@@ -165,7 +176,7 @@ describe('computeBuildables', () => {
       expect(result.perRunRequirements[0]).toEqual({
         materialTypeID: 10,
         materialName: 'Iron',
-        requiredPerRun: 90, // applyMe10(100)
+        requiredPerRun: 90, // applyMe(100, 10)
         have: 500,
       });
     });
