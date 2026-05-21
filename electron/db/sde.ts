@@ -4,6 +4,7 @@ export type ManufacturableBlueprint = {
   blueprintTypeID: number;
   productTypeID: number;
   productName: string;
+  meLevel: number;
 };
 
 export type BlueprintMaterial = {
@@ -49,10 +50,12 @@ export function listManufacturableBlueprints(
 ): ManufacturableBlueprint[] {
   return db
     .prepare(
-      `SELECT iap.typeID AS blueprintTypeID, iap.productTypeID, prod.typeName AS productName
+      `SELECT iap.typeID AS blueprintTypeID, iap.productTypeID, prod.typeName AS productName,
+              CASE WHEN imt.metaGroupID IN (2, 53) THEN 2 ELSE 10 END AS meLevel
        FROM   industryActivityProducts iap
        JOIN   invTypes prod ON prod.typeID = iap.productTypeID AND prod.published = 1
        JOIN   invTypes bp   ON bp.typeID   = iap.typeID        AND bp.published   = 1
+       LEFT JOIN invMetaTypes imt ON imt.typeID = iap.productTypeID
        WHERE  iap.activityID = 1`,
     )
     .all() as ManufacturableBlueprint[];

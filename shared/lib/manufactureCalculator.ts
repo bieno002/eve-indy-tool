@@ -10,6 +10,7 @@ export type BlueprintInput = {
   blueprintTypeID: number;
   productTypeID: number;
   productName: string;
+  meLevel: number;
   materials: Array<{
     materialTypeID: number;
     materialName: string;
@@ -17,8 +18,8 @@ export type BlueprintInput = {
   }>;
 };
 
-export function applyMe10(baseQty: number): number {
-  return Math.max(1, Math.ceil(baseQty * 0.9));
+export function applyMe(baseQty: number, meLevel: number): number {
+  return Math.max(1, Math.ceil(baseQty * (1 - meLevel / 100)));
 }
 
 export function computeBuildables(
@@ -45,7 +46,7 @@ export function computeBuildables(
     const perRunRequirements: PerRunRequirementData[] = bp.materials.map(mat => ({
       materialTypeID: mat.materialTypeID,
       materialName: mat.materialName,
-      requiredPerRun: applyMe10(mat.baseQuantity),
+      requiredPerRun: applyMe(mat.baseQuantity, bp.meLevel),
       have: inventory.get(mat.materialTypeID) ?? 0,
     }));
 

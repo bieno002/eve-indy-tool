@@ -71,7 +71,7 @@ describe('computeBuildablesFromDb', () => {
     clearBlueprintCache();
     vi.mocked(findManyTypeIdsByName).mockReturnValue(new Map([['tritanium', 34], ['pyerite', 35]]));
     vi.mocked(listManufacturableBlueprints).mockReturnValue([
-      { blueprintTypeID: 1, productTypeID: 2, productName: 'Antimatter Charge S' },
+      { blueprintTypeID: 1, productTypeID: 2, productName: 'Antimatter Charge S', meLevel: 10 },
     ]);
     vi.mocked(getAllManufacturingMaterials).mockReturnValue([
       { blueprintTypeID: 1, materialTypeID: 34, materialName: 'Tritanium', baseQuantity: 100 },
@@ -115,5 +115,19 @@ describe('computeBuildablesFromDb', () => {
       'Tritanium\t900\nPyerite\t45',
     );
     expect(result.items[0].bottleneckMaterialName).toBe('Pyerite');
+  });
+
+  it('applies ME 2 for Tech 2 blueprints (fewer possible runs than ME 10)', () => {
+    clearBlueprintCache();
+    vi.mocked(listManufacturableBlueprints).mockReturnValue([
+      { blueprintTypeID: 1, productTypeID: 2, productName: 'T2 Module', meLevel: 2 },
+    ]);
+    vi.mocked(getAllManufacturingMaterials).mockReturnValue([
+      { blueprintTypeID: 1, materialTypeID: 34, materialName: 'Tritanium', baseQuantity: 100 },
+    ]);
+    vi.mocked(findManyTypeIdsByName).mockReturnValue(new Map([['tritanium', 34]]));
+    // 91 units: ME 2 requires ceil(100*0.98)=98 → can't build; ME 10 would allow floor(91/90)=1
+    const result = computeBuildablesFromDb(fakeDb, 'Tritanium\t91');
+    expect(result.items).toHaveLength(0);
   });
 });
