@@ -93,12 +93,13 @@ describe('BuildableTable', () => {
 
   it('shows default sort indicator on Possible Runs column', () => {
     render(<BuildableTable items={[makeItem()]} selectedId={null} onSelect={vi.fn()} />);
-    expect(screen.getByText(/Possible Runs ▼/)).toBeInTheDocument();
+    const runsHeader = screen.getByRole('columnheader', { name: /Runs/ });
+    expect(runsHeader.textContent).toContain('↓');
   });
 
   it('clicking Product header sorts ascending by name', () => {
     render(<BuildableTable items={twoItems} selectedId={null} onSelect={vi.fn()} />);
-    fireEvent.click(screen.getByText('Product'));
+    fireEvent.click(screen.getByRole('columnheader', { name: /Product/ }));
     const rows = screen.getAllByRole('row').slice(1);
     expect(rows[0]).toHaveTextContent('Afterburner');
     expect(rows[1]).toHaveTextContent('Mining Laser');
@@ -106,7 +107,7 @@ describe('BuildableTable', () => {
 
   it('clicking active sort header toggles direction', () => {
     render(<BuildableTable items={twoItems} selectedId={null} onSelect={vi.fn()} />);
-    fireEvent.click(screen.getByText(/Possible Runs/));
+    fireEvent.click(screen.getByRole('columnheader', { name: /Runs/ }));
     const rows = screen.getAllByRole('row').slice(1);
     expect(rows[0]).toHaveTextContent('Mining Laser');
     expect(rows[1]).toHaveTextContent('Afterburner');
