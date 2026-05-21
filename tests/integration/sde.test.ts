@@ -77,6 +77,12 @@ describe.skipIf(sdeMissing)('SDE integration (requires data/sde.sqlite)', () => 
       const tritaniumAsProduct = blueprints.find(b => b.productTypeID === 34);
       expect(tritaniumAsProduct).toBeUndefined();
     });
+
+    it('excludes unpublished items such as NPC faction variants', () => {
+      const blueprints = listManufacturableBlueprints(db);
+      const npcVariant = blueprints.find(b => b.productName === 'InterBus Catalyst');
+      expect(npcVariant).toBeUndefined();
+    });
   });
 
   describe('getBlueprintMaterials', () => {
