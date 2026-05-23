@@ -89,9 +89,10 @@ describe('computeBuildablesFromDb', () => {
     expect(result.items[0].possibleRuns).toBe(10);
   });
 
-  it('returns empty items when inventory is insufficient', () => {
+  it('returns a partial item with possibleRuns 0 when inventory is insufficient', () => {
     const result = computeBuildablesFromDb(fakeDb, 'Tritanium\t1');
-    expect(result.items).toHaveLength(0);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].possibleRuns).toBe(0);
   });
 
   it('surfaces parse errors from malformed paste lines', () => {
@@ -128,6 +129,7 @@ describe('computeBuildablesFromDb', () => {
     vi.mocked(findManyTypeIdsByName).mockReturnValue(new Map([['tritanium', 34]]));
     // 91 units: ME 2 requires ceil(100*0.98)=98 → can't build; ME 10 would allow floor(91/90)=1
     const result = computeBuildablesFromDb(fakeDb, 'Tritanium\t91');
-    expect(result.items).toHaveLength(0);
+    expect(result.items).toHaveLength(1);
+    expect(result.items[0].possibleRuns).toBe(0);
   });
 });

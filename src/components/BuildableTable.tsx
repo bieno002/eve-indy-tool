@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { BuildableItem } from '../types/models.js';
+import { completionFraction } from '../../shared/lib/manufactureCalculator.js';
 
 type SortKey = 'productName' | 'possibleRuns' | 'bottleneckMaterialName';
 type SortDir = 'asc' | 'desc';
@@ -15,7 +16,9 @@ function sortItems(items: BuildableItem[], key: SortKey, dir: SortDir): Buildabl
   return [...items].sort((a, b) => {
     let cmp: number;
     if (key === 'possibleRuns') {
-      cmp = a.possibleRuns - b.possibleRuns;
+      cmp = a.possibleRuns !== b.possibleRuns
+        ? a.possibleRuns - b.possibleRuns
+        : completionFraction(a.perRunRequirements) - completionFraction(b.perRunRequirements);
     } else if (key === 'bottleneckMaterialName') {
       cmp = (a.bottleneckMaterialName ?? '').localeCompare(b.bottleneckMaterialName ?? '');
     } else {
@@ -25,7 +28,7 @@ function sortItems(items: BuildableItem[], key: SortKey, dir: SortDir): Buildabl
   });
 }
 
-function RunsBadge({ runs }: { runs: number }) {
+function RunsBadge({ runs, fraction }: { runs: number; fraction?: number }) {
   const cls =
     runs >= 10
       ? 'bg-emerald-900/60 text-emerald-300 border-emerald-700/50'
@@ -34,9 +37,12 @@ function RunsBadge({ runs }: { runs: number }) {
       : runs >= 1
       ? 'bg-amber-900/60 text-amber-300 border-amber-700/50'
       : 'bg-red-900/60 text-red-300 border-red-700/50';
+  const label = runs === 0 && fraction !== undefined
+    ? `${Math.round(fraction * 100)}%`
+    : runs;
   return (
     <span className={`inline-flex items-center justify-center min-w-10 px-2 py-0.5 rounded-full text-xs font-semibold border tabular-nums ${cls}`}>
-      {runs}
+      {label}
     </span>
   );
 }
@@ -45,6 +51,7 @@ export function BuildableTable({ items, selectedId, onSelect, isLoading = false 
   const [sortKey, setSortKey] = useState<SortKey>('possibleRuns');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [filter, setFilter] = useState('');
+  const [buildableOnly, setBuildableOnly] = useState(false);
 
   if (isLoading) {
     return (
@@ -79,18 +86,32 @@ export function BuildableTable({ items, selectedId, onSelect, isLoading = false 
     return <span className="ml-1 text-cyan-400">{sortDir === 'asc' ? '↑' : '↓'}</span>;
   };
 
-  const filtered = filter
-    ? items.filter(item => item.productName.toLowerCase().includes(filter.toLowerCase()))
+  const withBuildableFilter = buildableOnly
+    ? items.filter(item => item.possibleRuns > 0)
     : items;
+  const filtered = filter
+    ? withBuildableFilter.filter(item => item.productName.toLowerCase().includes(filter.toLowerCase()))
+    : withBuildableFilter;
   const sorted = sortItems(filtered, sortKey, sortDir);
 
   return (
     <div className="bg-slate-800/50 border border-slate-700/60 rounded-xl overflow-hidden">
       <div className="px-4 py-3 border-b border-slate-700/60 flex items-center justify-between">
         <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Buildable Items</h2>
-        <span className="text-xs text-slate-500 tabular-nums">
-          {filtered.length !== items.length ? `${filtered.length} / ${items.length}` : items.length} items
-        </span>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-1.5 cursor-pointer select-none text-xs text-slate-400">
+            <input
+              type="checkbox"
+              checked={buildableOnly}
+              onChange={e => setBuildableOnly(e.target.checked)}
+              className="accent-cyan-500"
+            />
+            Buildable only
+          </label>
+          <span className="text-xs text-slate-500 tabular-nums">
+            {filtered.length !== items.length ? `${filtered.length} / ${items.length}` : items.length} items
+          </span>
+        </div>
       </div>
       <div className="px-4 py-2.5 border-b border-slate-700/40">
         <input
@@ -165,7 +186,7 @@ export function BuildableTable({ items, selectedId, onSelect, isLoading = false 
                       </span>
                     </td>
                     <td className="py-2.5 pr-4 text-right">
-                      <RunsBadge runs={item.possibleRuns} />
+                      <RunsBadge runs={item.possibleRuns} fraction={completionFraction(item.perRunRequirements)} />
                     </td>
                     <td className="py-2.5 pr-4 text-amber-400/90 text-xs">{bottleneck}</td>
                   </tr>
