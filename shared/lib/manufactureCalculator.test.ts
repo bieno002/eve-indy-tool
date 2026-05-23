@@ -1,12 +1,18 @@
 import { describe, it, expect } from 'vitest';
 import {
   applyMe,
+  completionFraction,
   computeBuildables,
   type BlueprintInput,
   type Inventory,
 } from './manufactureCalculator.js';
+import type { PerRunRequirementData } from '../types.js';
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+
+function req(materialTypeID: number, requiredPerRun: number, have: number): PerRunRequirementData {
+  return { materialTypeID, materialName: `Mat${materialTypeID}`, requiredPerRun, have };
+}
 
 function inv(entries: [number, number][]): Inventory {
   return new Map(entries);
@@ -30,6 +36,22 @@ function bp(
     })),
   };
 }
+
+// ── completionFraction ────────────────────────────────────────────────────────
+
+describe('completionFraction', () => {
+  it('returns 0 for empty requirements', () => {
+    expect(completionFraction([])).toBe(0);
+  });
+
+  it('returns have/required for a single material', () => {
+    expect(completionFraction([req(1, 100, 47)])).toBe(0.47);
+  });
+
+  it('returns the minimum ratio (bottleneck) across all materials', () => {
+    expect(completionFraction([req(1, 100, 90), req(2, 100, 30)])).toBe(0.3);
+  });
+});
 
 // ── applyMe ───────────────────────────────────────────────────────────────────
 
@@ -209,18 +231,78 @@ describe('computeBuildables', () => {
     });
   });
 
-  describe('includeUnbuildable option', () => {
-    const inventory = inv([[10, 90]]);
-    const blueprints = [
-      bp(1, 'Buildable', [[10, 'Iron', 100]]),   // 1 run
-      bp(2, 'Unbuildable', [[20, 'Silk', 100]]), // 0 runs (missing material)
-    ];
-
-    it('excludes zero-run blueprints by default', () => {
+  describe('default filter behaviour', () => {
+    it('excludes blueprints where inventory has none of the required materials', () => {
+      const inventory = inv([[10, 90]]);
+      const blueprints = [
+        bp(1, 'Buildable', [[10, 'Iron', 100]]),
+        bp(2, 'NoMaterials', [[20, 'Silk', 100]]), // have 0 of Silk
+      ];
       const results = computeBuildables(inventory, blueprints);
       expect(results).toHaveLength(1);
       expect(results[0].productName).toBe('Buildable');
     });
+
+    it('excludes blueprints where fewer than half the required materials are present', () => {
+      // 1 of 4 materials present = 25% < 50% threshold
+      const inventory = inv([[10, 45]]);
+      const blueprint = bp(1, 'TooFew', [
+        [10, 'Iron', 100],
+        [20, 'Silk', 100],
+        [30, 'Gel', 100],
+        [40, 'Carbon', 100],
+      ]);
+      const results = computeBuildables(inventory, [blueprint]);
+      expect(results).toHaveLength(0);
+    });
+
+    it('includes blueprints where exactly half the required materials are present', () => {
+      // 2 of 4 materials present = 50% threshold
+      const inventory = inv([[10, 45], [20, 45]]);
+      const blueprint = bp(1, 'HalfStocked', [
+        [10, 'Iron', 100],
+        [20, 'Silk', 100],
+        [30, 'Gel', 100],
+        [40, 'Carbon', 100],
+      ]);
+      const results = computeBuildables(inventory, [blueprint]);
+      expect(results).toHaveLength(1);
+      expect(results[0].possibleRuns).toBe(0);
+    });
+
+    it('includes blueprints with 1 of 2 materials present (50% threshold)', () => {
+      const inventory = inv([[10, 45]]);
+      const blueprint = bp(1, 'Partial', [[10, 'Iron', 100], [20, 'Silk', 100]]);
+      const results = computeBuildables(inventory, [blueprint]);
+      expect(results).toHaveLength(1);
+      expect(results[0].possibleRuns).toBe(0);
+    });
+
+    it('sorts partial items below buildable items, by completion fraction descending', () => {
+      // applyMe(100, 10) = 90 for all
+      const inventory = inv([
+        [10, 90], // Buildable: 1 full run
+        [20, 40], // MoreComplete: 40/90 ≈ 44% of first run
+        [30, 20], // LessComplete: 20/90 ≈ 22% of first run
+      ]);
+      const blueprints = [
+        bp(1, 'Buildable', [[10, 'Iron', 100]]),
+        bp(2, 'LessComplete', [[30, 'Gel', 100]]),
+        bp(3, 'MoreComplete', [[20, 'Silk', 100]]),
+      ];
+      const results = computeBuildables(inventory, blueprints);
+      expect(results[0].productName).toBe('Buildable');
+      expect(results[1].productName).toBe('MoreComplete');
+      expect(results[2].productName).toBe('LessComplete');
+    });
+  });
+
+  describe('includeUnbuildable option', () => {
+    const inventory = inv([[10, 90]]);
+    const blueprints = [
+      bp(1, 'Buildable', [[10, 'Iron', 100]]),   // 1 run
+      bp(2, 'Unbuildable', [[20, 'Silk', 100]]), // 0 runs, 0 materials present
+    ];
 
     it('excludes zero-run blueprints when includeUnbuildable is false', () => {
       const results = computeBuildables(inventory, blueprints, { includeUnbuildable: false });

@@ -22,6 +22,11 @@ export function applyMe(baseQty: number, meLevel: number): number {
   return Math.max(1, Math.ceil(baseQty * (1 - meLevel / 100)));
 }
 
+export function completionFraction(reqs: PerRunRequirementData[]): number {
+  if (reqs.length === 0) return 0;
+  return Math.min(...reqs.map(r => r.have / r.requiredPerRun));
+}
+
 export function computeBuildables(
   inventory: Inventory,
   blueprints: BlueprintInput[],
@@ -88,11 +93,17 @@ export function computeBuildables(
 
   const filtered = includeUnbuildable
     ? results
-    : results.filter(r => r.possibleRuns > 0);
+    : results.filter(r => {
+        if (r.possibleRuns > 0) return true;
+        const reqs = r.perRunRequirements;
+        return reqs.length > 0 && reqs.filter(req => req.have > 0).length * 2 >= reqs.length;
+      });
 
-  return filtered.sort((a, b) =>
-    b.possibleRuns !== a.possibleRuns
-      ? b.possibleRuns - a.possibleRuns
-      : a.productName.localeCompare(b.productName),
-  );
+  return filtered.sort((a, b) => {
+    if (b.possibleRuns !== a.possibleRuns) return b.possibleRuns - a.possibleRuns;
+    const fracA = completionFraction(a.perRunRequirements);
+    const fracB = completionFraction(b.perRunRequirements);
+    if (fracB !== fracA) return fracB - fracA;
+    return a.productName.localeCompare(b.productName);
+  });
 }

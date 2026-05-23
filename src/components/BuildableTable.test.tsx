@@ -129,4 +129,43 @@ describe('BuildableTable', () => {
     });
     expect(screen.getByText(/No items match/)).toBeInTheDocument();
   });
+
+  describe('partial items (possibleRuns === 0)', () => {
+    const partialItem = makeItem({
+      blueprintTypeID: 102,
+      productName: 'Shield Booster',
+      possibleRuns: 0,
+      perRunRequirements: [
+        { materialTypeID: 2, materialName: 'Mexallon', requiredPerRun: 100, have: 47 },
+      ],
+      bottleneckMaterialTypeID: 2,
+      bottleneckMaterialName: 'Mexallon',
+      shortfalls: [{ materialTypeID: 2, materialName: 'Mexallon', needForOneMore: 53 }],
+    });
+
+    it('shows partial items by default', () => {
+      render(<BuildableTable items={[partialItem]} selectedId={null} onSelect={vi.fn()} />);
+      expect(screen.getByText('Shield Booster')).toBeInTheDocument();
+    });
+
+    it('displays completion percentage in badge for partial items', () => {
+      render(<BuildableTable items={[partialItem]} selectedId={null} onSelect={vi.fn()} />);
+      expect(screen.getByText('47%')).toBeInTheDocument();
+    });
+
+    it('"Buildable only" checkbox hides partial items', () => {
+      render(<BuildableTable items={[makeItem(), partialItem]} selectedId={null} onSelect={vi.fn()} />);
+      fireEvent.click(screen.getByRole('checkbox', { name: /Buildable only/ }));
+      expect(screen.queryByText('Shield Booster')).not.toBeInTheDocument();
+      expect(screen.getByText('Mining Laser')).toBeInTheDocument();
+    });
+
+    it('"Buildable only" checkbox shows partial items again when unchecked', () => {
+      render(<BuildableTable items={[makeItem(), partialItem]} selectedId={null} onSelect={vi.fn()} />);
+      const checkbox = screen.getByRole('checkbox', { name: /Buildable only/ });
+      fireEvent.click(checkbox);
+      fireEvent.click(checkbox);
+      expect(screen.getByText('Shield Booster')).toBeInTheDocument();
+    });
+  });
 });
